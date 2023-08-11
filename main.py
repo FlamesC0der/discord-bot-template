@@ -26,7 +26,7 @@ def main():
         except Exception as e:
             logger.error(e)
     
-    @tasks.loop(seconds=5.0)
+    @tasks.loop(seconds=30.0)
     async def update_presence():
         soup = BeautifulSoup(requests.get('https://github.com/FlamesC0der').text, "html.parser")
         data = soup.find_all('span',class_="Counter")
