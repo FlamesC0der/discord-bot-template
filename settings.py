@@ -1,4 +1,5 @@
 import os
+import datetime
 import logging
 from logging.config import dictConfig
 from dotenv import load_dotenv
@@ -14,33 +15,37 @@ LOGGING_CONFIG = {
     "disabled_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)-10s - %(asctime)s - %(module)-15s : %(message)s"
+            "format": "\033[94m[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s\033[0m"
         },
-        "standard": {
-            "format": "%(levelname)-10s - %(name)-15s : %(message)s"
+        "verbose_w": {
+            "format": "\033[93m[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s\033[0m"
+        },
+        "verbose_f": {
+            "format": "[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s"
         },
     },
     "handlers": {
         "console": {
             "level": "DEBUG", 
             "class": "logging.StreamHandler",
-            "formatter": "standard",
+            "formatter": "verbose",
         },
         "console2": {
             "level": "WARNING",
             "class": "logging.StreamHandler",
-            "formatter": "standard",
+            "formatter": "verbose_w",
         },
         "file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": "logs/infos.log",
+            "filename": f"logs/{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}.log",
             "mode": "w",
+            "formatter": "verbose_f",
         },
     },
     "loggers": {
         "bot": {
-            "handlers": ["console"], 
+            "handlers": ["console", "file"], 
             "level": "INFO", 
             "propagate": False
         },
