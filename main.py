@@ -1,4 +1,5 @@
 import settings
+import asyncio
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -31,6 +32,8 @@ def main():
         soup = BeautifulSoup(requests.get('https://github.com/FlamesC0der').text, "html.parser")
         data = soup.find_all('span',class_="Counter")
         await bot.change_presence(status=discord.Status.idle, activity=discord.Game(f'Repos: {data[0].text} | Stars: {data[3].text}'))
+        await asyncio.sleep(15)
+        await bot.change_presence(status=discord.Status.idle, activity=discord.Game(f'Created by FlamesCoder ♡'))
 
     bot.run(settings.DISCORD_API_TOKEN,root_logger=True)
 
