@@ -21,6 +21,11 @@
 * 💻 Using discord tasks
 * <img src="https://img.shields.io/pypi/v/discord.py?label=bs4"/> Basic parser example
 
+<h2>Support</h2>
+
+* ⚠️ If you have any problem with my temple (after downloading) you can create [new issue](https://github.com/FlamesC0der/discord-bot-template/issues) (best way)
+* Or you can contact me <a href="https://t.me/FlameCoder0_0" target="_blank"><img src="https://img.shields.io/badge/telegram-0088cc?logo=telegram&logoColor=white"/></a> <a href="https://discord.gg/3wt8QRndjm" target="_blank"><img src="https://img.shields.io/badge/discord-5865F2?logo=discord&logoColor=white"/></a>
+
 <h2>Installation</h2>
 
 * [Create](https://github.com/FlamesC0der/discord-bot-template/generate) and clone this temple
