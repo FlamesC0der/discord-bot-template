@@ -13,8 +13,27 @@
 <h2></h2>
 <h2>Features</h2>
 
-* 1
-* 2
-* 3
+* <img src="https://img.shields.io/badge/discord.py-2.x-blue"/> with new futures
+* ⚡️ Using "slash" commands like "/ping"
+* 🎨 Beautiful and informative colored logs
+* 💾 logs stored in "logs" folder
+* 📂 All Commands are in "Cogs" folder
+* 💻 Using discord tasks
+* <img src="https://img.shields.io/pypi/v/discord.py?label=bs4"/> Basic parser example
 
 <h2>Installation</h2>
+
+* [Create](https://github.com/FlamesC0der/discord-bot-template/generate) and clone this temple
+* Create ".env" file
+* Paste this code and change "TOKEN" with your [token](https://discord.com/developers/applications)
+```
+DISCORD_API_TOKEN=TOKEN
+```
+* Install requirements from requirements.txt
+```
+pip install -r requirements.txt
+```
+* Run bot via
+```
+python main.py
+```
