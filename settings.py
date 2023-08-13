@@ -1,7 +1,6 @@
 import os
 import datetime
 import logging
-from logging.config import dictConfig
 from dotenv import load_dotenv
 
 
@@ -9,52 +8,37 @@ load_dotenv()
 
 DISCORD_API_TOKEN = os.getenv("DISCORD_API_TOKEN")
 
+class LoggingFormatter(logging.Formatter):
+    black = "\x1b[30m"
+    FAIL = '\033[91m'
+    red = "\x1b[31m"
+    green = "\x1b[32m"
+    yellow = "\x1b[33m"
+    blue = "\x1b[34m"
+    gray = "\x1b[38m"
+    reset = "\x1b[0m"
 
-LOGGING_CONFIG = {
-    "version": 1,
-    "disabled_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "\033[94m[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s\033[0m"
-        },
-        "verbose_w": {
-            "format": "\033[93m[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s\033[0m"
-        },
-        "verbose_f": {
-            "format": "[%(asctime)s] %(levelname)-7s | %(module)-15s | %(message)s"
-        },
-    },
-    "handlers": {
-        "console": {
-            "level": "DEBUG", 
-            "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        },
-        "console2": {
-            "level": "WARNING",
-            "class": "logging.StreamHandler",
-            "formatter": "verbose_w",
-        },
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": f"logs/{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}.log",
-            "mode": "w",
-            "formatter": "verbose_f",
-        },
-    },
-    "loggers": {
-        "bot": {
-            "handlers": ["console", "file"], 
-            "level": "INFO", 
-            "propagate": False
-        },
-        "discord": {
-            "handlers": ["console2", "file"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
+    format = "[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s"
 
-dictConfig(LOGGING_CONFIG)
+    FORMATS = {
+        logging.DEBUG: gray + format + reset,
+        logging.INFO: blue + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: FAIL + format + reset,
+    }
+
+    def format(self, record):
+        formatter = logging.Formatter(self.FORMATS.get(record.levelno))
+        return formatter.format(record)
+
+logger = logging.getLogger("bot")
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(LoggingFormatter())
+file_handler = logging.FileHandler(filename=f"logs/{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}.log", mode="w")
+file_handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s"))
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)

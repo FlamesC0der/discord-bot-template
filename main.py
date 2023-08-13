@@ -35,7 +35,7 @@ def main():
         await asyncio.sleep(15)
         await bot.change_presence(status=discord.Status.idle, activity=discord.Game(f'Created by FlamesCoder ♡'))
 
-    bot.run(settings.DISCORD_API_TOKEN,root_logger=True)
+    bot.run(settings.DISCORD_API_TOKEN,root_logger=True, log_handler=None)
 
 if __name__ == "__main__":
     main()
