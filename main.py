@@ -43,8 +43,8 @@ class LoggingFormatter(logging.Formatter):
 logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
 
-logging.getLogger('discord.http').setLevel(logging.INFO)
-discord.VoiceClient.warn_nacl = False # Disable PyNaCl Warning
+logging.getLogger("discord.http").setLevel(logging.INFO)
+discord.VoiceClient.warn_nacl = False  # Disable PyNaCl Warning
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(LoggingFormatter())
