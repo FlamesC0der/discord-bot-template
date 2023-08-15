@@ -40,8 +40,11 @@ class LoggingFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-logger = logging.getLogger("bot")
+logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
+
+logging.getLogger('discord.http').setLevel(logging.INFO)
+discord.VoiceClient.warn_nacl = False # Disable PyNaCl Warning
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(LoggingFormatter())
@@ -56,10 +59,19 @@ file_handler.setFormatter(
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+# Intents
+
+intents = discord.Intents.default()
+# Privileged Intents (Needs to be enabled on developer portal of Discord (https://discord.com/developers/applications)), please use them only if you need them:
+# intents.members = True
+# intents.message_content = True
+# intents.presences = True
+
+
 bot = commands.Bot(
     command_prefix=config["prefix"],
     help_command=None,
-    intents=discord.Intents.default(),
+    intents=intents,
 )
 
 
@@ -67,6 +79,7 @@ bot = commands.Bot(
 async def on_ready():
     logger.info(f"User: {bot.user} (ID: {bot.user.id})")
     update_presence.start()
+    await bot.tree.sync()
     await bot.change_presence(
         status=discord.Status.idle,
         activity=discord.Game(f"Created by FlamesCoder ♡"),
@@ -85,6 +98,7 @@ async def update_presence():
 
 async def load_cogs():
     logger.info("Loading cogs:")
+    logger.info("---------------------------")
     for filename in os.listdir("./cogs"):
         if filename.endswith(".py"):
             try:
@@ -98,4 +112,4 @@ async def load_cogs():
 
 
 asyncio.run(load_cogs())
-bot.run(config["token"], root_logger=True, log_handler=None)
+bot.run(config["token"], log_handler=None)
