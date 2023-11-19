@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import datetime
 import json
@@ -6,38 +7,36 @@ import random
 
 import logging
 import discord
+import sqlite3
 from discord.ext import commands, tasks
-
-
-# Load config
-with open("config.json", "r") as f:
-    config = json.load(f)
+from dotenv import load_dotenv
+from database import DatabaseManager
 
 
 # Logger
 class LoggingFormatter(logging.Formatter):
-    black = "\x1b[30m"
-    FAIL = "\033[91m"
-    red = "\x1b[31m"
-    green = "\x1b[32m"
-    yellow = "\x1b[33m"
-    blue = "\x1b[34m"
-    gray = "\x1b[38m"
-    reset = "\x1b[0m"
+  black = "\x1b[30m"
+  FAIL = "\033[91m"
+  red = "\x1b[31m"
+  green = "\x1b[32m"
+  yellow = "\x1b[33m"
+  blue = "\x1b[34m"
+  gray = "\x1b[38m"
+  reset = "\x1b[0m"
 
-    format = "[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s"
+  format = "[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s"
 
-    FORMATS = {
-        logging.DEBUG: gray + format + reset,
-        logging.INFO: blue + format + reset,
-        logging.WARNING: yellow + format + reset,
-        logging.ERROR: red + format + reset,
-        logging.CRITICAL: FAIL + format + reset,
-    }
+  FORMATS = {
+    logging.DEBUG: gray + format + reset,
+    logging.INFO: blue + format + reset,
+    logging.WARNING: yellow + format + reset,
+    logging.ERROR: red + format + reset,
+    logging.CRITICAL: FAIL + format + reset,
+  }
 
-    def format(self, record):
-        formatter = logging.Formatter(self.FORMATS.get(record.levelno))
-        return formatter.format(record)
+  def format(self, record):
+    formatter = logging.Formatter(self.FORMATS.get(record.levelno))
+    return formatter.format(record)
 
 
 logger = logging.getLogger("discord")
@@ -49,15 +48,26 @@ discord.VoiceClient.warn_nacl = False  # Disable PyNaCl Warning
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(LoggingFormatter())
 file_handler = logging.FileHandler(
-    filename=f"logs/{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}.log",
-    mode="w",
+  filename=f"logs/{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}.log",
+  mode="w",
 )
 file_handler.setFormatter(
-    logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s")
+  logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s")
 )
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+
+# Load config
+
+if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
+  logger.error("There is no file config.json")
+  sys.exit()
+else:
+  with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json", "r") as f:
+    config = json.load(f)
+
 
 # Intents
 
@@ -67,49 +77,58 @@ intents = discord.Intents.default()
 # intents.message_content = True
 # intents.presences = True
 
-
-bot = commands.Bot(
-    command_prefix=config["prefix"],
-    help_command=None,
-    intents=intents,
-)
-
-
-@bot.event
-async def on_ready():
-    logger.info(f"User: {bot.user} (ID: {bot.user.id})")
-    update_presence.start()
-    await bot.tree.sync()
-    await bot.change_presence(
-        status=discord.Status.idle,
-        activity=discord.Game(f"Created by FlamesCoder ♡"),
+class Bot(commands.Bot):
+  def __init__(self) -> None:
+    super().__init__(
+      command_prefix=config["prefix"],
+      help_command=None,
+      intents=intents
     )
 
-
-@tasks.loop(minutes=1.0)
-async def update_presence():
-    await bot.change_presence(
-        status=discord.Status.idle,
-        activity=discord.Game(
-            random.choice(["Created by FlamesCoder ♡", f"Guilds: {len(bot.guilds)}"])
-        ),
+    self.logger = logger
+    self.config = config
+    self.database = None
+  
+  async def init_db(self) -> None:
+    with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/build.sql") as f:
+      conn = self.database.conn
+      cur = conn.cursor()
+      cur.executescript(f.read())
+  
+  async def on_ready(self) -> None:
+    self.logger.info(f"User: {bot.user} (ID: {bot.user.id})")
+    self.update_presence.start()
+    self.database = DatabaseManager(
+      connection=sqlite3.connect(
+        f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db"
+      )
     )
-
-
-async def load_cogs():
+    await self.init_db()
+    await self.tree.sync()
+  
+  @tasks.loop(minutes=1.0)
+  async def update_presence(self) -> None:
+    await self.change_presence(
+      status=discord.Status.idle,
+      activity=discord.Game(
+        random.choice(["Created by FlamesCoder ♡", f"Guilds: {len(bot.guilds)}"])
+      ),
+    )
+  
+  async def load_cogs(self) -> None:
     logger.info("Loading cogs:")
-    logger.info("---------------------------")
     for filename in os.listdir("./cogs"):
-        if filename.endswith(".py"):
-            try:
-                await bot.load_extension(f"cogs.{filename[:-3]}")
-                logger.info(f"Loaded extension: {filename[:-3]}")
-            except Exception as e:
-                logger.error(
-                    f'Failed to load extension {filename[:-3]}\n{f"{type(e).__name__}: {e}"}'
-                )
-    logger.info("---------------------------")
+      if filename.endswith(".py"):
+        try:
+          await self.load_extension(f"cogs.{filename[:-3]}")
+          self.logger.info(f"Loaded extension: {filename[:-3]}")
+        except Exception as e:
+          self.logger.error(
+            f'Failed to load extension {filename[:-3]}\n{f"{type(e).__name__}: {e}"}'
+          )
 
+load_dotenv()
 
-asyncio.run(load_cogs())
-bot.run(config["token"], log_handler=None)
+bot = Bot()
+asyncio.run(bot.load_cogs())
+bot.run(os.getenv("TOKEN"), log_handler=None)
