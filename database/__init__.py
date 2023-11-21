@@ -6,7 +6,7 @@ class DatabaseManager():
     self.conn = connection
     self.cur = self.conn.cursor()
   
-  def add_money(self, user_id: int, server_id: int, amount: int) -> int:
+  def set_money(self, user_id: int, server_id: int, amount: int) -> int:
     rows = self.conn.execute(
       "SELECT id FROM economy WHERE user_id=? AND server_id=? ORDER BY id DESC LIMIT 1",
       (

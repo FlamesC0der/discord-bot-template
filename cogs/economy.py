@@ -13,7 +13,7 @@ class Money(commands.Cog):
   @app_commands.describe(user="User")
   @app_commands.describe(amount="Amout of cash")
   async def set_money(self, interaction: discord.Interaction, user: discord.User, amount: int = 1000):
-    result = self.bot.database.add_money(
+    result = self.bot.database.set_money(
       user.id, interaction.guild.id, amount
     )
     await interaction.response.send_message(f"Set {user.name}'s money: {amount} ({result})")

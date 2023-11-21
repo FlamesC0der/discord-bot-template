@@ -1,6 +1,5 @@
 import os
 import sys
-import asyncio
 import datetime
 import json
 import random
@@ -97,14 +96,14 @@ class Bot(commands.Bot):
   
   async def on_ready(self) -> None:
     self.logger.info(f"User: {bot.user} (ID: {bot.user.id})")
-    self.update_presence.start()
     self.database = DatabaseManager(
       connection=sqlite3.connect(
         f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db"
       )
     )
     await self.init_db()
-    await self.tree.sync()
+    await self.load_cogs()
+    self.update_presence.start()
   
   @tasks.loop(minutes=1.0)
   async def update_presence(self) -> None:
@@ -115,9 +114,13 @@ class Bot(commands.Bot):
       ),
     )
   
+  @update_presence.before_loop
+  async def before_update_presence(self) -> None:
+    await self.wait_until_ready()
+  
   async def load_cogs(self) -> None:
     logger.info("Loading cogs:")
-    for filename in os.listdir("./cogs"):
+    for filename in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
       if filename.endswith(".py"):
         try:
           await self.load_extension(f"cogs.{filename[:-3]}")
@@ -130,5 +133,4 @@ class Bot(commands.Bot):
 load_dotenv()
 
 bot = Bot()
-asyncio.run(bot.load_cogs())
 bot.run(os.getenv("TOKEN"), log_handler=None)
