@@ -51,7 +51,7 @@ file_handler = logging.FileHandler(
   mode="w",
 )
 file_handler.setFormatter(
-  logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s")
+  logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-10s | %(message)s")
 )
 
 logger.addHandler(console_handler)
@@ -94,7 +94,7 @@ class Bot(commands.Bot):
       cur = conn.cursor()
       cur.executescript(f.read())
   
-  async def on_ready(self) -> None:
+  async def setup_hook(self) -> None:
     self.logger.info(f"User: {bot.user} (ID: {bot.user.id})")
     self.database = DatabaseManager(
       connection=sqlite3.connect(
@@ -103,6 +103,7 @@ class Bot(commands.Bot):
     )
     await self.init_db()
     await self.load_cogs()
+    await self.tree.sync()
     self.update_presence.start()
   
   @tasks.loop(minutes=1.0)
@@ -119,7 +120,7 @@ class Bot(commands.Bot):
     await self.wait_until_ready()
   
   async def load_cogs(self) -> None:
-    logger.info("Loading cogs:")
+    logger.info("Loading cogs")
     for filename in os.listdir(f"{os.path.realpath(os.path.dirname(__file__))}/cogs"):
       if filename.endswith(".py"):
         try:
@@ -133,4 +134,5 @@ class Bot(commands.Bot):
 load_dotenv()
 
 bot = Bot()
+
 bot.run(os.getenv("TOKEN"), log_handler=None)

@@ -1,18 +1,28 @@
-import asyncio
 import discord
+import asyncio
 from discord import app_commands
 from discord.ext import commands
 
 
-class Clear(commands.Cog):
+class Misc(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
-
-  @app_commands.command(
-    name="clear", description="Clears last messages (can take some time)"
-  )
+  
+  @app_commands.command(name="say", description="Make the bot say something")
+  @app_commands.describe(message="What should i say")
+  async def say(self, interaction: discord.Interaction, message: str):
+    await interaction.response.send_message(message)
+  
+  @app_commands.command(name="ping", description="Returns bot ping")
+  async def ping(self, interaction: discord.Interaction):
+    await interaction.response.send_message(
+      embed=discord.Embed(title=f"Pong!\n🌐 {round(self.bot.latency, 4)}ms"),
+      ephemeral=True,
+    )
+  
+  @app_commands.command(name="clear", description="Clears last messages (can take some time)")
   @app_commands.describe(count="Count of messages (default 10)")
-  async def clear(self, interaction: discord.Interaction, count: int = 10):
+  async def clear(self, interaction: discord.Interaction, count: int):
     def progressBar(iteration, total):
       percent = iteration / total * 100
       filledLength = int(10 * iteration // total)
@@ -47,4 +57,4 @@ class Clear(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-  await bot.add_cog(Clear(bot))
+  await bot.add_cog(Misc(bot))
