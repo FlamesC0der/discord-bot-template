@@ -15,21 +15,24 @@
 <h2>Features</h2>
 
 * <img src="https://img.shields.io/badge/discord.py-2.x-blue"/> with new futures
-* ⚡️ Using "slash" commands like "/ping"
+* ⚡️ Using "slash" commands like "/ping", "/ban"
 * 🎨 Beautiful and informative colored logs
 * 💾 logs stored in "logs" folder
 * 📂 All Commands are in "Cogs" folder
 * 💻 Using discord tasks
+* Database (SQLite3)
+* Economy commands
+* Moderation commands
 
 <h2>Support</h2>
 
 * ❌ if you have any error after starting bot (temple) you should create [new issue](https://github.com/FlamesC0der/discord-bot-template/issues) (best way)
-* ⚠️ If you have any problem with my temple (after downloading) you can create [new issue](https://github.com/FlamesC0der/discord-bot-template/issues) or you can contact me <a href="https://t.me/FlameCoder0_0" target="_blank"><img src="https://img.shields.io/badge/telegram-0088cc?logo=telegram&logoColor=white"/></a> <a href="https://discord.gg/3wt8QRndjm" target="_blank"><img src="https://img.shields.io/badge/discord-5865F2?logo=discord&logoColor=white"/></a>
 
 <h2>Installation</h2>
 
 * [Create](https://github.com/FlamesC0der/discord-bot-template/generate) and clone this temple
-* In config.json change prefix and token with your prefix(/ $ ! etc...) and [token](https://discord.com/developers/applications)
+* In config.json change prefix and token with your prefix(/ $ ! etc...)
+* Create `.env` file with your [token](https://discord.com/developers/applications) like `TOKEN=MTEaMDUeODk0NzY1DATk2NDQDNg.GFV6lk.RCUh3av4_NQrEadeeVSSRZLBmoLURGnGsJ1bicqk`
 * Install requirements from requirements.txt
 ```
 pip install -r requirements.txt
