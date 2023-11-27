@@ -81,19 +81,13 @@ class Bot(commands.Bot):
   def __init__(self) -> None:
     super().__init__(
       command_prefix=config["prefix"],
-      # help_command=None,
+      help_command=None,
       intents=intents
     )
 
     self.logger = logger
     self.config = config
     self.database = None
-  
-  async def init_db(self) -> None:
-    with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/build.sql") as f:
-      conn = self.database.conn
-      cur = conn.cursor()
-      cur.executescript(f.read())
   
   async def setup_hook(self) -> None:
     self.logger.info(f"User: {bot.user} (ID: {bot.user.id})")
@@ -112,6 +106,16 @@ class Bot(commands.Bot):
       password="youshallnotpass"
     )
     await wavelink.NodePool.connect(client=self, nodes=[node])
+  
+  async def init_db(self) -> None:
+    with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/build.sql") as f:
+      conn = self.database.conn
+      cur = conn.cursor()
+      cur.executescript(f.read())
+  
+  async def on_wavelink_node_ready(self, node: wavelink.Node):
+    self.logger.info(f"Wavelink's node {node.id} is ready.")
+    
   
   @tasks.loop(minutes=1.0)
   async def update_presence(self) -> None:

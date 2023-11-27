@@ -2,6 +2,7 @@ import discord
 import asyncio
 from discord import app_commands
 from discord.ext import commands
+import wavelink
 
 
 class Misc(commands.Cog):
@@ -17,7 +18,7 @@ class Misc(commands.Cog):
   async def ping(self, interaction: discord.Interaction):
     await interaction.response.send_message(
       embed=discord.Embed(
-        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`",
+        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`\nWavelink ⇒ `{wavelink.Player.ping}ms`",
         color=0xad1457
       ),
       ephemeral=True,

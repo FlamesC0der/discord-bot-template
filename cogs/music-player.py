@@ -1,44 +1,27 @@
-from typing import Optional
 import discord
 import wavelink
 from discord import app_commands
 from discord.ext import commands
-import pprint
 
 
 class Music_list(discord.ui.View):
-  def __init__(self):
+  def __init__(self, tracks):
     self.track_id = 0
-    super().__init__(timeout=300)
+    super().__init__(timeout=None)
+    self.tracks = tracks
+    self.init_buttons()
   
-  @discord.ui.button(label="1", style=discord.ButtonStyle.blurple)
-  async def play_1(self, button, interaction):
-    self.track_id = 0
-    self.stop()
-
-  @discord.ui.button(label="2", style=discord.ButtonStyle.blurple)
-  async def play_2(self, button, interaction):
-    self.track_id = 1
-    self.stop()
-
-  @discord.ui.button(label="3", style=discord.ButtonStyle.blurple)
-  async def play_3(self, button, interaction):
-    self.track_id = 2
-    self.stop()
-  
-  @discord.ui.button(label="4", style=discord.ButtonStyle.blurple)
-  async def play_4(self, button, interaction):
-    self.track_id = 3
-    self.stop()
-  
-  @discord.ui.button(label="5", style=discord.ButtonStyle.blurple)
-  async def play_5(self, button, interaction):
-    self.track_id = 4
-    self.stop()
-  
-  @discord.ui.button(label="", style=discord.ButtonStyle.red, emoji='<:yt:1178649329678954496>')
-  async def youtube(self, button, interaction):
-    pass
+  def init_buttons(self):
+    for i in range(len(self.tracks)):
+      if i == 5:
+        break
+      button = discord.ui.Button(label=str(i + 1), style=discord.ButtonStyle.blurple, custom_id=str(i))
+      async def callback_function(interaction, i):
+        self.track_id = i
+        self.stop()
+      
+      button.callback = lambda interaction, i=i: callback_function(interaction, i)
+      self.add_item(button)
 
 
 class Music_player(commands.Cog):
@@ -56,7 +39,7 @@ class Music_player(commands.Cog):
 
     tracks = await wavelink.YouTubeTrack.search(search)
 
-    view = Music_list()
+    view = Music_list(tracks)
 
     def format_length(milliseconds):
       seconds = milliseconds // 1000
@@ -73,15 +56,21 @@ class Music_player(commands.Cog):
       
       return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
     
-    embed = discord.Embed(
-      description=f"Showing results for `{search}`. Select one of result below\n" + '\n'.join([f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)})' for i in range(5)]),
-      color=0xad1457
-    )
+    if tracks:
+      embed = discord.Embed(
+        description=f"Showing results for `{search}`. Select one of result below\n" + '\n'.join([f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)}) - Youtube' for i in range(5)]),
+        color=0xad1457
+      )
+    else:
+      embed = discord.Embed(
+        description="nothing was found",
+        color=0xad1457
+      )
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     await view.wait()
-    if view.track_id:
-      await vc.play(tracks[view.track_id])
+
+    await vc.play(tracks[view.track_id])
     embed = discord.Embed(
       description=f"**{tracks[view.track_id].title}** has been added to the queue.",
       color=0xad1457
