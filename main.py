@@ -105,7 +105,7 @@ class Bot(commands.Bot):
       uri="http://localhost:2333",
       password="youshallnotpass"
     )
-    await wavelink.NodePool.connect(client=self, nodes=[node])
+    await wavelink.Pool.connect(client=self, nodes=[node], cache_capacity=None)
   
   async def init_db(self) -> None:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/build.sql") as f:
@@ -114,7 +114,7 @@ class Bot(commands.Bot):
       cur.executescript(f.read())
   
   async def on_wavelink_node_ready(self, node: wavelink.Node):
-    self.logger.info(f"Wavelink's node {node.id} is ready.")
+    self.logger.info(f"Wavelink's node {node} is ready.")
     
   
   @tasks.loop(minutes=1.0)

@@ -30,14 +30,14 @@ class Music_player(commands.Cog):
   
   @app_commands.command(name="play", description="Play music")
   @app_commands.guild_only()
-  @app_commands.describe(search="Search request")
+  @app_commands.describe(search="Search or link")
   async def play(self, interaction: discord.Integration, search: str):
     if not interaction.guild.voice_client:
       vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
     else:
       vc: wavelink.Player = interaction.guild.voice_client
-
-    tracks = await wavelink.YouTubeTrack.search(search)
+    
+    tracks = await wavelink.Playable.search(search)
 
     view = Music_list(tracks)
 
@@ -57,8 +57,13 @@ class Music_player(commands.Cog):
       return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
     
     if tracks:
+      description = f"Showing results for `{search}`. Select one of result below\n"
+      for i in range(len(tracks)):
+        if i == 5:
+          break
+        description += f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)}) - {tracks[i].source.capitalize()}\n'
       embed = discord.Embed(
-        description=f"Showing results for `{search}`. Select one of result below\n" + '\n'.join([f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)}) - Youtube' for i in range(5)]),
+        description=description,
         color=0xad1457
       )
     else:
@@ -70,14 +75,29 @@ class Music_player(commands.Cog):
 
     await view.wait()
 
-    await vc.play(tracks[view.track_id])
+    if not vc.playing:
+      await vc.play(tracks[view.track_id])
     embed = discord.Embed(
       description=f"**{tracks[view.track_id].title}** has been added to the queue.",
       color=0xad1457
     )
     embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
     await interaction.channel.send(embed=embed)
-  
+
+  @app_commands.command(name="play2", description="play beta (wavelink 3.0.0)")
+  @app_commands.guild_only()
+  @app_commands.describe(search="Search or link")
+  async def play2(self, interaction: discord.Interaction, search: str):
+    tracks: wavelink.Search = await wavelink.Playable.search(search)
+    vc: wavelink.Player = interaction.guild.voice_client
+    if not tracks:
+      return
+    
+    track: wavelink.Playable = tracks[0]
+    await vc.queue.put_wait(track)
+    await interaction.response.send_message(f"Added **`{track}`** to the queue.")
+
+
   @app_commands.command(name="leave", description="Leave voice channel")
   @app_commands.guild_only()
   async def leave(self, interaction: discord.Integration):
@@ -88,14 +108,8 @@ class Music_player(commands.Cog):
   @app_commands.command(name="pause", description="Pause Music")
   async def pause(self, interaction: discord.Integration):
     vc: wavelink.Player = interaction.guild.voice_client
-    await vc.pause()
-    await interaction.response.send_message(embed=discord.Embed(description="The pleyer is now paused", color=0xad1457))
-  
-  @app_commands.command(name="resume", description="Resume Music")
-  async def resume(self, interaction: discord.Integration):
-    vc: wavelink.Player = interaction.guild.voice_client
-    await vc.resume()
-    await interaction.response.send_message(embed=discord.Embed(description="The pleyer is now resumed", color=0xad1457))
+    await vc.pause(not vc.paused)
+    await interaction.response.send_message(embed=discord.Embed(description=f"The pleyer is now {vc.paused}", color=0xad1457))
   
   @commands.Cog.listener()
   async def on_voice_state_update(self, member, before, after):
