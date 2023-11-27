@@ -16,11 +16,15 @@ class Misc(commands.Cog):
   @app_commands.command(name="ping", description="Returns bot ping")
   async def ping(self, interaction: discord.Interaction):
     await interaction.response.send_message(
-      embed=discord.Embed(title=f"Pong!\n🌐 {round(self.bot.latency, 4)}ms"),
+      embed=discord.Embed(
+        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`",
+        color=0xad1457
+      ),
       ephemeral=True,
     )
   
   @app_commands.command(name="clear", description="Clears last messages (can take some time)")
+  @app_commands.guild_only()
   @app_commands.describe(count="Count of messages (default 10)")
   async def clear(self, interaction: discord.Interaction, count: int):
     def progressBar(iteration, total):
@@ -46,11 +50,15 @@ class Misc(commands.Cog):
       embed=discord.Embed(
         title=f"Clearing messages:",
         description=f"{progressBar(len(deleted_msg), count)}",
+        color=0xad1457
       )
     )
     await asyncio.sleep(0.5)
     await interaction.edit_original_response(
-      embed=discord.Embed(title=f"✅ Deleted {len(deleted_msg)} message(s)")
+      embed=discord.Embed(
+        title=f"✅ Deleted {len(deleted_msg)} message(s)",
+        color=0xad1457
+      ),
     )
     await asyncio.sleep(10)
     await msg.delete()

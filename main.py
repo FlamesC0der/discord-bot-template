@@ -6,6 +6,7 @@ import random
 
 import logging
 import discord
+import wavelink
 import sqlite3
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -80,7 +81,7 @@ class Bot(commands.Bot):
   def __init__(self) -> None:
     super().__init__(
       command_prefix=config["prefix"],
-      help_command=None,
+      # help_command=None,
       intents=intents
     )
 
@@ -96,6 +97,7 @@ class Bot(commands.Bot):
   
   async def setup_hook(self) -> None:
     self.logger.info(f"User: {bot.user} (ID: {bot.user.id})")
+    self.logger.info(f"Shard: {bot.shard_id}")
     self.database = DatabaseManager(
       connection=sqlite3.connect(
         f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db"
@@ -105,6 +107,11 @@ class Bot(commands.Bot):
     await self.load_cogs()
     await self.tree.sync()
     self.update_presence.start()
+    node = wavelink.Node(
+      uri="http://localhost:2333",
+      password="youshallnotpass"
+    )
+    await wavelink.NodePool.connect(client=self, nodes=[node])
   
   @tasks.loop(minutes=1.0)
   async def update_presence(self) -> None:

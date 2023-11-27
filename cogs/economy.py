@@ -8,6 +8,7 @@ class Economy(commands.Cog):
     self.bot = bot
   
   @app_commands.command(name="set_money", description="Set Money count")
+  @app_commands.guild_only()
   @app_commands.describe(user="User")
   @app_commands.describe(amount="Amout of cash")
   async def set_money(self, interaction: discord.Interaction, user: discord.User, amount: int = 1000):
@@ -17,6 +18,7 @@ class Economy(commands.Cog):
     await interaction.response.send_message(f"Set {user.name}'s money: {amount}")
   
   @app_commands.command(name="top", description="Get top player's balance")
+  @app_commands.guild_only()
   async def top(self, interaction: discord.Interaction):
     result = self.bot.database.get_top(
       interaction.guild.id
@@ -27,7 +29,8 @@ class Economy(commands.Cog):
       data.append(f"{i + 1}) {user.name}....{result[i][3]}")
     embed = discord.Embed(
       title="Top Money",
-      description="\n".join(data)
+      description="\n".join(data),
+      color=0xad1457
     )
     await interaction.response.send_message(embed=embed)
 

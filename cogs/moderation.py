@@ -9,6 +9,7 @@ class Moderation(commands.Cog):
     self.bot = bot
   
   @app_commands.command(name="ban", description="Ban user")
+  @app_commands.guild_only()
   @app_commands.checks.has_permissions(administrator=True)
   @app_commands.describe(user="User")
   @app_commands.describe(duration="Duration of ban(2h 10m 5s. Permanent if not specified)")
@@ -24,15 +25,16 @@ Unfortunately you have been banned from {interaction.guild.name}.
 
 **Reason**: {reason}
 **Moderator**: {interaction.user.global_name}
-**Duration**: {duration}"""))
+**Duration**: {duration}""", color=0xad1457))
       except:
         pass
       await interaction.guild.ban(user=user, reason=reason, delete_message_days=clear_days)
-      await interaction.response.send_message(embed=discord.Embed(title=f"Successfully banned {user.name}"))
+      await interaction.response.send_message(embed=discord.Embed(title=f"Successfully banned {user.name}", color=0xad1457))
     except:
-      await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to ban the user."))
+      await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to ban the user.", color=0xad1457))
   
   @app_commands.command(name="unban", description="Unban user")
+  @app_commands.guild_only()
   @app_commands.checks.has_permissions(administrator=True)
   @app_commands.describe(user_id="User id")
   async def unban(self, interaction: discord.Interaction, user_id: str):
@@ -40,13 +42,14 @@ Unfortunately you have been banned from {interaction.guild.name}.
       user = interaction.guild.get_member(user_id) or await self.bot.fetch_user(user_id)
       try:
         await interaction.guild.unban(user)
-        await interaction.response.send_message(embed=discord.Embed(title=f"Successfully unbanned {user_id}"))
+        await interaction.response.send_message(embed=discord.Embed(title=f"Successfully unbanned {user_id}", color=0xad1457))
       except:
-        await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to ban the user."))
+        await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to ban the user.", color=0xad1457))
     except:
-      await interaction.response.send_message(embed=discord.Embed(title="User not found"))
+      await interaction.response.send_message(embed=discord.Embed(title="User not found", color=0xad1457))
   
   @app_commands.command(name="kick", description="Kick user from server")
+  @app_commands.guild_only()
   @app_commands.checks.has_permissions(administrator=True)
   @app_commands.describe(user="User")
   @app_commands.describe(reason="Reason")
@@ -57,13 +60,13 @@ Unfortunately you have been banned from {interaction.guild.name}.
 Unfortunately you have been kicked from {interaction.guild.name}.
 
 **Reason**: {reason}
-**Moderator**: {interaction.user.global_name}"""))
+**Moderator**: {interaction.user.global_name}""", color=0xad1457))
       except:
         pass
       await interaction.guild.kick(user=user, reason=reason)
-      await interaction.response.send_message(embed=discord.Embed(title=f"Successfully kicked {user.name}"))
+      await interaction.response.send_message(embed=discord.Embed(title=f"Successfully kicked {user.name}", color=0xad1457))
     except:
-      await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to kick the user."))
+      await interaction.response.send_message(embed=discord.Embed(title="An error occurred while trying to kick the user.", color=0xad1457))
 
 
 async def setup(bot: commands.Bot):
