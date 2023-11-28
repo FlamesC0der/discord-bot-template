@@ -113,8 +113,8 @@ class Bot(commands.Bot):
       cur = conn.cursor()
       cur.executescript(f.read())
   
-  async def on_wavelink_node_ready(self, node: wavelink.Node):
-    self.logger.info(f"Wavelink's node {node} is ready.")
+  async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
+    self.logger.info(f"Wavelink's node {payload.node.identifier} is ready.")
     
   
   @tasks.loop(minutes=1.0)

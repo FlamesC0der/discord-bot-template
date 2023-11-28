@@ -32,6 +32,8 @@ class Music_player(commands.Cog):
   @app_commands.guild_only()
   @app_commands.describe(search="Search or link")
   async def play(self, interaction: discord.Integration, search: str):
+    if not interaction.user.voice:
+      return await interaction.response.send_message(embed=discord.Embed(description="You are not in a voice channel"))
     if not interaction.guild.voice_client:
       vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
     else:
@@ -84,20 +86,6 @@ class Music_player(commands.Cog):
     embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
     await interaction.channel.send(embed=embed)
 
-  @app_commands.command(name="play2", description="play beta (wavelink 3.0.0)")
-  @app_commands.guild_only()
-  @app_commands.describe(search="Search or link")
-  async def play2(self, interaction: discord.Interaction, search: str):
-    tracks: wavelink.Search = await wavelink.Playable.search(search)
-    vc: wavelink.Player = interaction.guild.voice_client
-    if not tracks:
-      return
-    
-    track: wavelink.Playable = tracks[0]
-    await vc.queue.put_wait(track)
-    await interaction.response.send_message(f"Added **`{track}`** to the queue.")
-
-
   @app_commands.command(name="leave", description="Leave voice channel")
   @app_commands.guild_only()
   async def leave(self, interaction: discord.Integration):
@@ -119,6 +107,7 @@ class Music_player(commands.Cog):
       return
     
     if len(vc.channel.members) == 1:
+      await vc.stop()
       await vc.disconnect()
 
 
