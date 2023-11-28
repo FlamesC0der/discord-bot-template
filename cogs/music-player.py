@@ -91,7 +91,7 @@ class Music_player(commands.Cog):
   async def leave(self, interaction: discord.Integration):
     vc: wavelink.Player = interaction.guild.voice_client
     await vc.disconnect()
-    await interaction.response.send_message(embed=discord.Embed(description="Disconnected channel", color=0xad1457))
+    await interaction.response.send_message(embed=discord.Embed(description="Disconnected from voice channel", color=0xad1457))
   
   @app_commands.command(name="pause", description="Pause Music")
   async def pause(self, interaction: discord.Integration):

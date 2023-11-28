@@ -20,7 +20,7 @@ class Misc(commands.Cog):
     vc: wavelink.Player = interaction.guild.voice_client
     await interaction.edit_original_response(
       embed=discord.Embed(
-        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`\nWavelink ⇒ `{vc.ping}ms`",
+        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`\nWavelink ⇒ `{vc.ping if vc else '0'}ms`",
         color=0xad1457
       ),
     )

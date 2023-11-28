@@ -3,9 +3,11 @@ import sys
 import datetime
 import json
 import random
+import asyncio
 
 import logging
 import discord
+from discord.ext.commands.context import Context
 import wavelink
 import sqlite3
 from discord.ext import commands, tasks
@@ -24,7 +26,7 @@ class LoggingFormatter(logging.Formatter):
   gray = "\x1b[38m"
   reset = "\x1b[0m"
 
-  format = "[%(asctime)s] %(levelname)-8s | %(module)-15s | %(message)s"
+  format = "[%(asctime)s] %(levelname)-8s | %(module)-8s | %(message)s"
 
   FORMATS = {
     logging.DEBUG: gray + format + reset,
@@ -43,7 +45,6 @@ logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
 
 logging.getLogger("discord.http").setLevel(logging.INFO)
-discord.VoiceClient.warn_nacl = False  # Disable PyNaCl Warning
 
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(LoggingFormatter())
@@ -52,12 +53,13 @@ file_handler = logging.FileHandler(
   mode="w",
 )
 file_handler.setFormatter(
-  logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-10s | %(message)s")
+  logging.Formatter("[%(asctime)s] %(levelname)-8s | %(module)-8s | %(message)s")
 )
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
+discord.VoiceClient.warn_nacl = False  # Disable PyNaCl Warning
 
 # Load config
 
@@ -99,6 +101,7 @@ class Bot(commands.Bot):
     )
     await self.init_db()
     await self.load_cogs()
+    self.logger.info("Waiting for ready...")
     await self.tree.sync()
     self.update_presence.start()
     node = wavelink.Node(
@@ -141,6 +144,22 @@ class Bot(commands.Bot):
           self.logger.error(
             f'Failed to load extension {filename[:-3]}\n{f"{type(e).__name__}: {e}"}'
           )
+  
+  async def on_command_error(self, context: Context, eror) -> None:
+    if isinstance(eror, commands.MissingPermissions):
+      embed = discord.Embed(
+        description=f"You are missing permission(s)\n`{', '.join(eror.missing_permissions)}`",
+        color=0xad1457
+      )
+      await context.send(embed=embed)
+    elif isinstance(eror, commands.BotMissingPermissions):
+      embed = discord.Embed(
+        description=f"I am missing permission(s)\n{', '.join(eror.missing_permissions)}",
+        color=0xad1457
+      )
+      await context.send(embed=embed)
+    else:
+      self.logger.error(eror)
 
 load_dotenv()
 
