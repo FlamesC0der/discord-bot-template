@@ -28,6 +28,17 @@ class Music_player(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
   
+  async def setup(self):
+    node = wavelink.Node(
+      uri="http://localhost:2333",
+      password="youshallnotpass"
+    )
+    await wavelink.Pool.connect(client=self.bot, nodes=[node], cache_capacity=None)
+  
+  @commands.Cog.listener()
+  async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
+    self.bot.logger.info(f"Wavelink's node {payload.node.identifier} is ready.")
+  
   @app_commands.command(name="play", description="Play music")
   @app_commands.guild_only()
   @app_commands.describe(link_or_query="Search or link")
@@ -139,4 +150,6 @@ class Music_player(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-  await bot.add_cog(Music_player(bot))
+  music_bot = Music_player(bot)
+  await bot.add_cog(music_bot)
+  await music_bot.setup()

@@ -104,20 +104,12 @@ class Bot(commands.Bot):
     self.logger.info("Waiting for ready...")
     await self.tree.sync()
     self.update_presence.start()
-    node = wavelink.Node(
-      uri="http://localhost:2333",
-      password="youshallnotpass"
-    )
-    await wavelink.Pool.connect(client=self, nodes=[node], cache_capacity=None)
   
   async def init_db(self) -> None:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/database/build.sql") as f:
       conn = self.database.conn
       cur = conn.cursor()
       cur.executescript(f.read())
-  
-  async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
-    self.logger.info(f"Wavelink's node {payload.node.identifier} is ready.")
     
   
   @tasks.loop(minutes=1.0)
