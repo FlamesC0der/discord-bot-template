@@ -65,7 +65,7 @@ class Music_player(commands.Cog):
       if hours == 0 and minutes == 0:  # seconds
         return "{:02d}".format(seconds)
       elif hours == 0 and minutes != 0:  # minutes, seconds
-        return "{:02d}{:02d}".format(minutes, seconds)
+        return "{:02d}:{:02d}".format(minutes, seconds)
       elif hours != 0 and minutes == 0:  # hours, minutes, seconds
         return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
       return ""
