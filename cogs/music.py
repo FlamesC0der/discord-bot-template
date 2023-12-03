@@ -62,16 +62,13 @@ class Music_player(commands.Cog):
       seconds %= 60
       minutes %= 60
 
-      res = []
-
-      if hours != 0 and minutes != 0:
-        res.append("{:02d}".format(hours))
-        res.append("{:02d}".format(minutes))
-      elif minutes != 0:
-        res.append("{:02d}".format(minutes))
-      res.append("{:02d}".format(seconds))
-      
-      return ":".join(res)
+      if hours == 0 and minutes == 0:  # seconds
+        return "{:02d}".format(seconds)
+      elif hours == 0 and minutes != 0:  # minutes, seconds
+        return "{:02d}{:02d}".format(minutes, seconds)
+      elif hours != 0 and minutes == 0:  # hours, minutes, seconds
+        return "{:02d}:{:02d}:{:02d}".format(seconds, minutes, seconds)
+      return ""
     
     # Select track
     if tracks:
