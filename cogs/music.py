@@ -64,9 +64,10 @@ class Music_player(commands.Cog):
 
       res = []
 
-      if hours != 0:
+      if hours != 0 and minutes != 0:
         res.append("{:02d}".format(hours))
-      if minutes != 0:
+        res.append("{:02d}".format(minutes))
+      elif minutes != 0:
         res.append("{:02d}".format(minutes))
       res.append("{:02d}".format(seconds))
       
