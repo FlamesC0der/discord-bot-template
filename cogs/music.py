@@ -101,7 +101,11 @@ class Music_player(commands.Cog):
     )
     embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
     await interaction.channel.send(embed=embed)
-
+  
+  @play.error
+  async def play_error(self, interaction, error):
+    await interaction.response.send_message(embed=discord.Embed(description="Failed to load song!", color=0xad1457), ephemeral=True)
+  
   @app_commands.command(name="leave", description="Leave voice channel")
   @app_commands.guild_only()
   async def leave(self, interaction: discord.Integration):
@@ -144,13 +148,9 @@ class Music_player(commands.Cog):
     if len(vc.channel.members) == 1:
       await vc.stop()
       await vc.disconnect()
-  
-  @play.error
-  async def play_error(self, interaction, error):
-    await interaction.response.send_message(embed=discord.Embed(description="Failed to load song!", color=0xad1457), ephemeral=True)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot): 
   music_bot = Music_player(bot)
   await bot.add_cog(music_bot)
   await music_bot.setup()
