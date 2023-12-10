@@ -23,6 +23,7 @@
 * Database (SQLite3)
 * Economy commands
 * Moderation commands
+* Music player
 
 <h2>Support</h2>
 
@@ -40,4 +41,8 @@ pip install -r requirements.txt
 * Run bot via
 ```
 python main.py
+```
+* Run lavalink server via (java 18+)
+```
+java -jar lavalink.jar
 ```
