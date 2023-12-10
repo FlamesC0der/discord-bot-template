@@ -20,7 +20,7 @@ class Gpt(commands.Cog):
     await interaction.response.send_message(embed=discord.Embed(description="Sending question to openai.com...", color=0xad1457))
     answer = requests.get("https://flamescoderapi--flamesc0der.repl.co/gpt", {"question": question}).json()
     embed = discord.Embed(
-      description=12,
+      description=answer['result']['content']2,
       color=0xad1457
     )
     embed.set_author(name="ChatGpt3", icon_url="https://media.discordapp.net/attachments/1131242153155231948/1183535435113300049/gpt.png?ex=6588b044&is=65763b44&hm=e6617bedd3b13a2d2279a01d4297ac54338ad9d0928b08a9dd4237ca3ead4c2e&=&format=webp&quality=lossless&width=200&height=200")
