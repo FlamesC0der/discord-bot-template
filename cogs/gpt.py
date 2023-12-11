@@ -1,4 +1,5 @@
 import discord
+import os
 import requests
 import asyncio
 from discord import app_commands
@@ -18,7 +19,7 @@ class Gpt(commands.Cog):
   @app_commands.describe(question="Your question")
   async def gpt(self, interaction: discord.Interaction, question: str):
     await interaction.response.send_message(embed=discord.Embed(description="Sending question to openai.com...", color=0xad1457))
-    answer = requests.get("https://flamescoderapi--flamesc0der.repl.co/gpt", {"question": question}).json()
+    answer = requests.get("https://flamescoderapi--flamesc0der.repl.co/gpt", {"api-key": os.getenv("FCA_API_KEY"), "question": question}).json()
     embed = discord.Embed(
       description=answer['result']['content'],
       color=0xad1457
