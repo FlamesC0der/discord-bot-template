@@ -33,7 +33,10 @@ class Music_player(commands.Cog):
       uri="http://localhost:2333",
       password="youshallnotpass"
     )
-    await wavelink.Pool.connect(client=self.bot, nodes=[node], cache_capacity=None)
+    try:
+      await wavelink.Pool.connect(client=self.bot, nodes=[node], cache_capacity=None)
+    except wavelink.NodeException:
+      pass
   
   @commands.Cog.listener()
   async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
@@ -114,12 +117,14 @@ class Music_player(commands.Cog):
     await interaction.response.send_message(embed=discord.Embed(description="Disconnected from voice channel", color=0xad1457))
   
   @app_commands.command(name="pause", description="Pause Music")
+  @app_commands.guild_only()
   async def pause(self, interaction: discord.Integration):
     vc: wavelink.Player = interaction.guild.voice_client
     await vc.pause(not vc.paused)
     await interaction.response.send_message(embed=discord.Embed(description=f"The pleyer is now {'paused' if vc.paused else 'unpaused'}", color=0xad1457))
   
   @app_commands.command(name="skip", description="Skip music")
+  @app_commands.guild_only()
   async def skip(self, interaction: discord.Integration):
     vc: wavelink.Player = interaction.guild.voice_client
     if vc:

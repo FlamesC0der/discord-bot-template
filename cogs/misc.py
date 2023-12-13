@@ -17,13 +17,21 @@ class Misc(commands.Cog):
   @app_commands.command(name="ping", description="Returns bot ping")
   async def ping(self, interaction: discord.Interaction):
     await interaction.response.send_message(embed=discord.Embed(description="Bot ping..."), ephemeral=True)
-    vc: wavelink.Player = interaction.guild.voice_client
-    await interaction.edit_original_response(
-      embed=discord.Embed(
-        description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`\nWavelink ⇒ `{vc.ping if vc else '0'}ms`",
-        color=0xad1457
-      ),
-    )
+    if interaction.guild:
+      vc: wavelink.Player = interaction.guild.voice_client
+      await interaction.edit_original_response(
+        embed=discord.Embed(
+          description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`\nWavelink ⇒ `{vc.ping if vc else '0'}ms`",
+          color=0xad1457
+        ),
+      )
+    else:
+      await interaction.edit_original_response(
+        embed=discord.Embed(
+          description=f"Discord Websocket ⇒ `{round(self.bot.latency * 1000, 0)}ms`",
+          color=0xad1457
+        ),
+      )
   
   @app_commands.command(name="clear", description="Clears last messages (can take some time)")
   @app_commands.guild_only()
