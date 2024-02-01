@@ -5,157 +5,166 @@ from discord.ext import commands
 
 
 class Music_list(discord.ui.View):
-  def __init__(self, tracks):
-    self.track_id = 0
-    super().__init__(timeout=None)
-    self.tracks = tracks
-    self.init_buttons()
-  
-  def init_buttons(self):
-    for i in range(len(self.tracks)):
-      if i == 5:
-        break
-      button = discord.ui.Button(label=str(i + 1), style=discord.ButtonStyle.blurple, custom_id=str(i))
-      async def callback_function(interaction, i):
-        self.track_id = i
-        self.stop()
-      
-      button.callback = lambda interaction, i=i: callback_function(interaction, i)
-      self.add_item(button)
+    def __init__(self, tracks):
+        self.track_id = 0
+        super().__init__(timeout=None)
+        self.tracks = tracks
+        self.init_buttons()
+
+    def init_buttons(self):
+        for i in range(len(self.tracks)):
+            if i == 5:
+                break
+            button = discord.ui.Button(label=str(i + 1), style=discord.ButtonStyle.blurple, custom_id=str(i))
+
+            async def callback_function(interaction, i):
+                self.track_id = i
+                self.stop()
+
+            button.callback = lambda interaction, i=i: callback_function(interaction, i)
+            self.add_item(button)
 
 
 class Music_player(commands.Cog):
-  def __init__(self, bot: commands.Bot):
-    self.bot = bot
-  
-  async def setup(self):
-    node = wavelink.Node(
-      uri="http://localhost:2333",
-      password="youshallnotpass"
-    )
-    try:
-      await wavelink.Pool.connect(client=self.bot, nodes=[node], cache_capacity=None)
-    except wavelink.NodeException:
-      pass
-  
-  @commands.Cog.listener()
-  async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
-    self.bot.logger.info(f"Wavelink's node {payload.node.identifier} is ready.")
-  
-  @app_commands.command(name="play", description="Play music")
-  @app_commands.guild_only()
-  @app_commands.describe(link_or_query="Search or link")
-  async def play(self, interaction: discord.Integration, link_or_query: str):
-    if not interaction.user.voice:
-      return await interaction.response.send_message(embed=discord.Embed(description="You are not in a voice channel"))
-    if not interaction.guild.voice_client:
-      vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
-    else:
-      vc: wavelink.Player = interaction.guild.voice_client
-    
-    tracks = await wavelink.Playable.search(link_or_query)
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    view = Music_list(tracks)
+    async def setup(self):
+        node = wavelink.Node(
+            uri="http://localhost:2333",
+            password="youshallnotpass"
+        )
+        try:
+            await wavelink.Pool.connect(client=self.bot, nodes=[node], cache_capacity=None)
+        except wavelink.NodeException:
+            pass
 
-    def format_length(milliseconds):
-      seconds = milliseconds // 1000
-      minutes = seconds // 60
-      hours = minutes // 60
+    @commands.Cog.listener()
+    async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload) -> None:
+        self.bot.logger.info(f"Wavelink's node {payload.node.identifier} is ready.")
 
-      seconds %= 60
-      minutes %= 60
+    @app_commands.command(name="play", description="Play music")
+    @app_commands.guild_only()
+    @app_commands.describe(link_or_query="Search or link")
+    async def play(self, interaction: discord.Integration, link_or_query: str):
+        if not interaction.user.voice:
+            return await interaction.response.send_message(
+                embed=discord.Embed(description="You are not in a voice channel"))
+        if not interaction.guild.voice_client:
+            vc: wavelink.Player = await interaction.user.voice.channel.connect(cls=wavelink.Player)
+        else:
+            vc: wavelink.Player = interaction.guild.voice_client
 
-      if hours == 0 and minutes == 0:  # seconds
-        return "{:02d}".format(seconds)
-      elif hours == 0 and minutes != 0:  # minutes, seconds
-        return "{:02d}:{:02d}".format(minutes, seconds)
-      elif hours != 0 and minutes == 0:  # hours, minutes, seconds
-        return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
-      return ""
-    
-    # Select track
-    if tracks:
-      description = f"Showing results for `{link_or_query}`. Select one of result below\n"
-      for i in range(len(tracks)):
-        if i == 5:
-          break
-        description += f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)}) - {tracks[i].source.capitalize()}\n'
-      embed = discord.Embed(
-        description=description,
-        color=0xad1457
-      )
-    else:
-      embed = discord.Embed(
-        description="nothing was found",
-        color=0xad1457
-      )
-    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        tracks = await wavelink.Playable.search(link_or_query)
 
-    await view.wait()
+        view = Music_list(tracks)
 
-    if vc.playing:
-      vc.queue.put(tracks[view.track_id])
-    else:
-      await vc.play(tracks[view.track_id])
-    
-    embed = discord.Embed(
-      description=f"**{tracks[view.track_id].title}** has been added to the queue.",
-      color=0xad1457
-    )
-    embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
-    await interaction.channel.send(embed=embed)
-  
-  @play.error
-  async def play_error(self, interaction, error):
-    await interaction.response.send_message(embed=discord.Embed(description="Failed to load song!", color=0xad1457), ephemeral=True)
-  
-  @app_commands.command(name="leave", description="Leave voice channel")
-  @app_commands.guild_only()
-  async def leave(self, interaction: discord.Integration):
-    vc: wavelink.Player = interaction.guild.voice_client
-    await vc.disconnect()
-    await interaction.response.send_message(embed=discord.Embed(description="Disconnected from voice channel", color=0xad1457))
-  
-  @app_commands.command(name="pause", description="Pause Music")
-  @app_commands.guild_only()
-  async def pause(self, interaction: discord.Integration):
-    vc: wavelink.Player = interaction.guild.voice_client
-    await vc.pause(not vc.paused)
-    await interaction.response.send_message(embed=discord.Embed(description=f"The pleyer is now {'paused' if vc.paused else 'unpaused'}", color=0xad1457))
-  
-  @app_commands.command(name="skip", description="Skip music")
-  @app_commands.guild_only()
-  async def skip(self, interaction: discord.Integration):
-    vc: wavelink.Player = interaction.guild.voice_client
-    if vc:
-      if not vc.playing:
-        return await interaction.response.send_message(embed=discord.Embed(description="Nothing to skip", color=0xad1457))
-      await vc.stop()
-      if vc.paused:
-        await vc.pause(False)
-      await interaction.response.send_message(embed=discord.Embed(description="skiped current music", color=0xad1457))
-    else:
-      await interaction.response.send_message(embed=discord.Embed(description="Bot is not connected to voice channel", color=0xad1457))
-  
-  @commands.Cog.listener()
-  async def on_wavelink_track_end(self, payload: wavelink.TrackEndEventPayload):
-    if payload.player.queue:
-      next_track = payload.player.queue.get()
-      await payload.player.play(next_track)
+        def format_length(milliseconds):
+            seconds = milliseconds // 1000
+            minutes = seconds // 60
+            hours = minutes // 60
 
-  @commands.Cog.listener()
-  async def on_voice_state_update(self, member, before, after):
-    vc = member.guild.voice_client
+            seconds %= 60
+            minutes %= 60
 
-    if not vc:
-      return
-    
-    if len(vc.channel.members) == 1:
-      await vc.stop()
-      await vc.disconnect()
+            if hours == 0 and minutes == 0:  # seconds
+                return "{:02d}".format(seconds)
+            elif hours == 0 and minutes != 0:  # minutes, seconds
+                return "{:02d}:{:02d}".format(minutes, seconds)
+            elif hours != 0 and minutes == 0:  # hours, minutes, seconds
+                return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+            return ""
+
+        # Select track
+        if tracks:
+            description = f"Showing results for `{link_or_query}`. Select one of result below\n"
+            for i in range(len(tracks)):
+                if i == 5:
+                    break
+                description += f'{i + 1}. {tracks[i]} ({format_length(tracks[i].length)}) - {tracks[i].source.capitalize()}\n'
+            embed = discord.Embed(
+                description=description,
+                color=0xad1457
+            )
+        else:
+            embed = discord.Embed(
+                description="nothing was found",
+                color=0xad1457
+            )
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+        await view.wait()
+
+        if vc.playing:
+            vc.queue.put(tracks[view.track_id])
+        else:
+            await vc.play(tracks[view.track_id])
+
+        embed = discord.Embed(
+            description=f"**{tracks[view.track_id].title}** has been added to the queue.",
+            color=0xad1457
+        )
+        embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar.url)
+        await interaction.channel.send(embed=embed)
+
+    @play.error
+    async def play_error(self, interaction, error):
+        await interaction.response.send_message(embed=discord.Embed(description="Failed to load song!", color=0xad1457),
+                                                ephemeral=True)
+
+    @app_commands.command(name="leave", description="Leave voice channel")
+    @app_commands.guild_only()
+    async def leave(self, interaction: discord.Integration):
+        vc: wavelink.Player = interaction.guild.voice_client
+        await vc.disconnect()
+        await interaction.response.send_message(
+            embed=discord.Embed(description="Disconnected from voice channel", color=0xad1457))
+
+    @app_commands.command(name="pause", description="Pause Music")
+    @app_commands.guild_only()
+    async def pause(self, interaction: discord.Integration):
+        vc: wavelink.Player = interaction.guild.voice_client
+        await vc.pause(not vc.paused)
+        await interaction.response.send_message(
+            embed=discord.Embed(description=f"The pleyer is now {'paused' if vc.paused else 'unpaused'}",
+                                color=0xad1457))
+
+    @app_commands.command(name="skip", description="Skip music")
+    @app_commands.guild_only()
+    async def skip(self, interaction: discord.Integration):
+        vc: wavelink.Player = interaction.guild.voice_client
+        if vc:
+            if not vc.playing:
+                return await interaction.response.send_message(
+                    embed=discord.Embed(description="Nothing to skip", color=0xad1457))
+            await vc.stop()
+            if vc.paused:
+                await vc.pause(False)
+            await interaction.response.send_message(
+                embed=discord.Embed(description="skiped current music", color=0xad1457))
+        else:
+            await interaction.response.send_message(
+                embed=discord.Embed(description="Bot is not connected to voice channel", color=0xad1457))
+
+    @commands.Cog.listener()
+    async def on_wavelink_track_end(self, payload: wavelink.TrackEndEventPayload):
+        if payload.player.queue:
+            next_track = payload.player.queue.get()
+            await payload.player.play(next_track)
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        vc = member.guild.voice_client
+
+        if not vc:
+            return
+
+        if len(vc.channel.members) == 1:
+            await vc.stop()
+            await vc.disconnect()
 
 
-async def setup(bot: commands.Bot): 
-  music_bot = Music_player(bot)
-  await bot.add_cog(music_bot)
-  await music_bot.setup()
+async def setup(bot: commands.Bot):
+    music_bot = Music_player(bot)
+    await bot.add_cog(music_bot)
+    await music_bot.setup()
