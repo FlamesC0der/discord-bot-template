@@ -17,8 +17,15 @@ class Music_list(discord.ui.View):
                 break
             button = discord.ui.Button(label=str(i + 1), style=discord.ButtonStyle.blurple, custom_id=str(i))
 
-            async def callback_function(interaction, i):
-                self.track_id = i
+            async def callback_function(interaction, index):
+                self.track_id = index
+                await interaction.response.send_message(
+                    embed=discord.Embed(
+                        title="Selected track!",
+                        color=0xad1457
+                    ),
+                    ephemeral=True
+                )
                 self.stop()
 
             button.callback = lambda interaction, i=i: callback_function(interaction, i)

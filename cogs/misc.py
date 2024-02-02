@@ -77,35 +77,6 @@ class Misc(commands.Cog):
         await asyncio.sleep(10)
         await msg.delete()
 
-    @app_commands.command(name="ny", description="NY")
-    @app_commands.check(whitelist)
-    async def ny(self, interaction: discord.Integration):
-        members = set()
-
-        async for guild in self.bot.fetch_guilds(limit=100):
-            async for member in guild.fetch_members():
-                members.add(member.id)
-
-        print(members)
-        await interaction.channel.send(members)
-
-        for user_id in members:
-            user = await self.bot.fetch_user(user_id)
-            try:
-                await user.send(embed=discord.Embed(description=f"""Дорогой {user.name},
-
-От лица FlameCoderDev, я хотел бы поздравить тебя с наступающим Новым Годом! Желаю тебе, чтобы год был наполнен яркими моментами, великими достижениями и невероятными успехами.
-
-Пусть Новый Год принесет тебе обновления, новые достижения и незабываемые приключения.
-
-Счастливого Нового Года, {user.name}! Желаю тебе вдохновения, мощных навыков и непреодолимой силы во всем, что ты предпримешь. Продолжай непрерывно творить и захватывать нас своим исполнением.
-
-С наилучшими пожеланиями,
-FlameCoderDeb"""))
-                print(f"message sent to {user.name}")
-            except Exception as e:
-                print(f"Failed to send message to {user.name}")
-
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Misc(bot))
